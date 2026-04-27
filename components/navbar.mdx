@@ -1,0 +1,180 @@
+---
+title: 'Navbar: AETHON shared navigation bar and login link'
+description: 'The AETHON navbar has a logo, three page links, a search input, and a Login button. It lives in navbar.html and is fetched at runtime by every page.'
+---
+
+The navbar gives every page in AETHON a consistent header: the site logo on the left, three navigation links centered, and a search field plus **Login** button on the right. Because the markup lives in a standalone `navbar.html` file, you update the navbar in one place and every page reflects the change automatically.
+
+## HTML structure
+
+The full source of `navbar.html` is shown below. It relies on Bootstrap's `navbar` classes and the custom styles in `css/navbar.css`.
+
+```html navbar.html
+<header class="custom-header">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
+            <div class="container-fluid">
+                <a href="index.html">
+                    <img src="img/image.png" alt="ATHERION" class="logo me-2">
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" href="index.html">Inicio</a></li>
+                        <li class="nav-item"><a class="nav-link" href="ranking.html">Ranking</a></li>
+                        <li class="nav-item"><a class="nav-link" href="filtros.html">Libros</a></li>
+                    </ul>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="search-group d-none d-lg-flex">
+                            <i class="bi bi-search ms-3 text-muted"></i>
+                            <input type="text" class="form-control search-input" placeholder="Buscar..."
+                                aria-label="Buscar">
+                        </div>
+
+                        <button class="btn btn-login rounded-pill px-4"
+                            onclick="window.location.href='login.html'">Login</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+```
+
+## Structure breakdown
+
+| Element | Detail |
+|---|---|
+| **Logo** | `<img src="img/image.png">` — links back to `index.html`, sized 210 × 70 px via `.logo` |
+| **Inicio** | Links to `index.html` |
+| **Ranking** | Links to `ranking.html` |
+| **Libros** | Links to `filtros.html` |
+| **Search** | `.search-group` input, hidden on mobile (below 992 px) via `d-none d-lg-flex` |
+| **Login** | Red pill button (`.btn-login`) that navigates to `login.html` |
+
+## Loading the navbar dynamically
+
+Every page loads `navbar.html` at runtime using a shared `loadComponent` helper. Place the function and the `DOMContentLoaded` listener in each page's `<script>` block.
+
+```javascript
+function loadComponent(url, elementId) {
+    fetch(url)
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById(elementId).innerHTML = data;
+        })
+        .catch(error => console.error('Error cargando ' + url + ':', error));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadComponent('navbar.html', 'navbar-placeholder');
+});
+```
+
+Add the matching placeholder `<div>` in the `<body>` of your page:
+
+```html
+<div id="navbar-placeholder"></div>
+```
+
+Also link the navbar stylesheet in the `<head>`:
+
+```html
+<link href="css/navbar.css" rel="stylesheet">
+```
+
+## Active link state management
+
+Because `navbar.html` is shared across all pages, the `active` class on the **Inicio** link is always set by default in the file. On pages other than the homepage you must remove it and apply it to the correct link after the component loads. `ranking.html` demonstrates this pattern:
+
+```javascript
+loadComponent('navbar.html', 'navbar-placeholder', function () {
+    document.querySelectorAll('#navbar-placeholder .nav-link').forEach(function (link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === 'ranking.html') {
+            link.classList.add('active');
+        }
+    });
+});
+```
+
+The extended version of `loadComponent` accepts an optional `callback` argument that runs once the HTML has been injected into the DOM. Inside the callback, iterate over every `.nav-link` inside `#navbar-placeholder`, strip the `active` class from all of them, then add it only to the link whose `href` matches the current page filename.
+
+<Tip>
+Keep the `href` values in `navbar.html` and the comparison string in each page's callback in sync. If you rename a page (for example `libros.html` instead of `filtros.html`), update both places.
+</Tip>
+
+<AccordionGroup>
+  <Accordion title="Navbar CSS reference">
+
+```css css/navbar.css
+.custom-header {
+    background: #111;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.custom-navbar {
+    padding: 1rem 0;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+    padding: 0.65rem 1rem;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    color: #ffffff;
+}
+
+.search-group {
+    min-width: 300px;
+    border-radius: 12px;
+    background: #1a1a1c;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+}
+
+.search-input {
+    border: none !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    padding-left: 10px;
+}
+
+.btn-login {
+    background-color: #dc3545;
+    color: #ffffff;
+    font-weight: 600;
+    border: none;
+}
+
+.btn-login:hover {
+    background-color: #c82333;
+    color: white;
+}
+
+.logo {
+    width: 210px;
+    height: 70px;
+    object-fit: contain;
+}
+
+@media (max-width: 991.98px) {
+    .search-group {
+        display: none !important;
+    }
+}
+```
+
+  </Accordion>
+</AccordionGroup>

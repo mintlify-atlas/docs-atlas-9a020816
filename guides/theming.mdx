@@ -1,0 +1,107 @@
+---
+title: "Customize AETHON's colors, dark theme, and breakpoints"
+description: "Learn how AETHON's dark palette is structured across CSS files, and how to change accent colors, card styles, and responsive breakpoints."
+---
+
+AETHON uses a full-black dark palette — `#000000` body background, `#ffffff` primary text — with a red accent (`#dc3545`) for interactive elements. All styles live in dedicated CSS files under `css/`: `styles.css` for the main layout, `navbar.css` for the top bar, `footer.css` for the footer, `filtros.css` for the catalog page, and `ranking.css` for the rankings page. There are no CSS custom properties (variables) in the current codebase — every value is written directly, so changes must be applied consistently across files.
+
+## Color values
+
+The palette is applied at three levels: the outermost page shell, section backgrounds, and card surfaces.
+
+### Background colors
+
+| Role | Value | Where used |
+|---|---|---|
+| Page background | `#000000` | `html, body` in `styles.css` |
+| Section background | `#070707` | `.libros-destacados`, `.featured-book-section`, `.libro-destacada-grande`, `.ranking-section`, `body` in `filtros.css` |
+| Card / container background | `#1a1a1a` | `.libro-card`, `.featured-book-contenedor`, `.libro-grande-contenedor`, `.card` in `filtros.css` |
+| Navbar background | `#111` | `.custom-header` in `navbar.css` |
+| Footer background | `#0a0a0a` | `.main-footer` in `footer.css` |
+
+### Text colors
+
+| Role | Value | Where used |
+|---|---|---|
+| Primary text | `#ffffff` | Headings, card titles, nav links |
+| Secondary text | `#b0b0b0` | `.libro-card-author`, `.featured-book-author`, `.libro-grande-autor` |
+| Body text / descriptions | `#d0d0d0` | `.featured-book-description`, `.libro-grande-descripcion` |
+| Muted / label text | `#aaaaaa` | Filter labels in `filtros.css`, stat text in `book.css` |
+
+### Accent colors
+
+| Role | Value | Where used |
+|---|---|---|
+| Primary accent | `#dc3545` | Links, category labels, CTA buttons, filter focus rings, ranking active tab |
+| Accent hover | `#ff4444` / `#c82333` | `.featured-book-link:hover`, `.btn-comprar:hover` |
+| Card border (subtle) | `rgba(255, 255, 255, 0.1)` | `.libro-card`, `.card` in `filtros.css` |
+
+## Changing the accent color
+
+All accent appearances are hardcoded to `#dc3545`. To switch the accent — for example, to blue — you need to update every occurrence across the CSS files. Here is the pattern for the most common locations:
+
+```css styles.css
+/* Before */
+.featured-book-link {
+    color: #dc3545; /* [!code --] */
+}
+
+.libro-grande-category {
+    color: #dc3545; /* [!code --] */
+}
+
+.libro-grande-link {
+    color: #dc3545; /* [!code --] */
+}
+
+/* After — switching accent to blue */
+.featured-book-link {
+    color: #0d6efd; /* [!code ++] */
+}
+
+.libro-grande-category {
+    color: #0d6efd; /* [!code ++] */
+}
+
+.libro-grande-link {
+    color: #0d6efd; /* [!code ++] */
+}
+```
+
+Repeat the same substitution in `navbar.css` (`.btn-login`), `footer.css` (`.footer-col-title`, `.footer-contact-icon`, `.footer-social-btn:hover`), `filtros.css` (`.filters button`, `.filters select:focus`, `.card:hover`), `book.css` (`.btn-comprar`, `.htag.active`, `.hero-author`), and `ranking.css` (`.ranking-tab-btn.active`).
+
+<Tip>
+If you plan to change the accent color frequently, consider introducing a CSS custom property. Add `--color-accent: #dc3545;` to a `:root {}` block in `styles.css`, then replace every hardcoded `#dc3545` with `var(--color-accent)`. Bootstrap's own theming documentation at [getbootstrap.com/docs/5.3/customize/css-variables/](https://getbootstrap.com/docs/5.3/customize/css-variables/) shows how to layer your custom properties alongside Bootstrap's `--bs-*` variables.
+</Tip>
+
+## Card hover effect
+
+The `.libro-card` in `styles.css` lifts upward and glows red on hover. The same pattern is reused by `.card` in `filtros.css` and `.ranking-card` in `ranking.css`.
+
+```css styles.css
+.libro-card {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.libro-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(220, 53, 69, 0.3);
+}
+```
+
+`translateY(-5px)` moves the card 5 pixels upward, and the `box-shadow` with `rgba(220, 53, 69, 0.3)` produces a soft red glow underneath. The `ranking-card` uses a slightly stronger lift (`translateY(-6px)`) with a matching shadow at `rgba(220, 53, 69, 0.22)`.
+
+## Responsive breakpoints
+
+AETHON uses three main breakpoints drawn from Bootstrap conventions:
+
+| Breakpoint | Value | Effect |
+|---|---|---|
+| Tablet portrait | `max-width: 991.98px` | Featured book and libro grande layouts switch from row to column; navbar search bar hides |
+| Mobile landscape | `max-width: 768px` | Catalog layout goes vertical, filter sidebar stretches full width, book grid drops to 2 columns |
+| Mobile portrait | `max-width: 767.98px` | Book grid on the homepage drops to 1 column; font sizes shrink |
+
+The catalog page (`filtros.css`) also adds a `max-width: 480px` breakpoint that collapses both the main grid and the recommended books grid to a single column.

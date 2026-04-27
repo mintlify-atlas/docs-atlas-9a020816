@@ -1,0 +1,195 @@
+---
+title: 'Hero carousel: full-width Bootstrap 5 image slider'
+description: 'The AETHON hero carousel shows three featured book slides with captions, auto-advances every 2 seconds, and is loaded from a shared carousel.html partial.'
+---
+
+The carousel is the first thing visitors see on the AETHON homepage. It showcases three featured books with a full-width cover image and a caption overlay, and automatically advances every two seconds. Like the navbar and footer, the markup lives in a standalone `carousel.html` file that pages load at runtime via `fetch`.
+
+## HTML structure
+
+The full source of `carousel.html` is shown below. It uses Bootstrap's carousel component with three slides and navigation controls.
+
+```html carousel.html
+<div class="carousel-wrapper">
+    <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+        <!-- Indicador de carrusel -->
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"
+                aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"
+                aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"
+                aria-label="Slide 3"></button>
+        </div>
+        <!-- Contenido del carrusel -->
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="img/cidudad y los perros - PORTADA.png" class="d-block w-100" alt="Slide 1">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold" style="color: black;">Ciudad y los perros</h5>
+                    <p style="color: #d0d0d0;">Una novela cruda y reveladora sobre un grupo de
+                    jóvenes cadetes donde la lealtad, la traición y la
+                     supervivencia se ponen a prueba</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="img/El Señor de los Anillos-PORTADA.png" class="d-block w-100" alt="Slide 2">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold" style="color: black;">El Señor de los Anillos</h5>
+                    <p style="color: #d0d0d0;">Una épica aventura en la Tierra Media llena de
+                        magia, héroes y batallas legendarias en la
+                        lucha definitiva contra la oscuridad.</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="img/Breve Historia del Tiempo - PORTADA.png" class="d-block w-100" alt="Slide 3">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5 class="fw-bold" style="color: black;">Breve Historia del Tiempo</h5>
+                    <p style="color: #d0d0d0;">Una introducción accesible a los misterios del
+                        universo, agujeros negros y relatividad.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Botones de navegación -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions"
+            data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions"
+            data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+```
+
+## Current slides
+
+The carousel ships with three slides, each featuring a book cover image and a caption:
+
+| Slide | Title | Description |
+|---|---|---|
+| 1 (active) | **Ciudad y los perros** | Una novela cruda y reveladora sobre un grupo de jóvenes cadetes donde la lealtad, la traición y la supervivencia se ponen a prueba |
+| 2 | **El Señor de los Anillos** | Una épica aventura en la Tierra Media llena de magia, héroes y batallas legendarias en la lucha definitiva contra la oscuridad |
+| 3 | **Breve Historia del Tiempo** | Una introducción accesible a los misterios del universo, agujeros negros y relatividad |
+
+## Adding a new slide
+
+<Steps>
+  <Step title="Add a slide indicator button">
+    Inside the `.carousel-indicators` div, append a new `<button>` with the next `data-bs-slide-to` index (for a fourth slide, use `3`):
+
+    ```html
+    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="3"
+        aria-label="Slide 4"></button>
+    ```
+  </Step>
+  <Step title="Add the slide item">
+    Inside `.carousel-inner`, append a new `.carousel-item` div with your book's cover image and caption:
+
+    ```html
+    <div class="carousel-item">
+        <img src="img/your-book-cover.png" class="d-block w-100" alt="Slide 4">
+        <div class="carousel-caption d-none d-md-block">
+            <h5 class="fw-bold" style="color: black;">Your Book Title</h5>
+            <p style="color: #d0d0d0;">A short description of the book.</p>
+        </div>
+    </div>
+    ```
+  </Step>
+  <Step title="Place the cover image in img/">
+    Save your book's cover image in the `img/` directory. The carousel sizes images to the 1920 × 800 aspect ratio defined in `.carousel-inner`; use a landscape-oriented cover for the best result.
+  </Step>
+</Steps>
+
+<Note>
+Only one `.carousel-item` should carry the `active` class. That class marks the initially visible slide. Do not add `active` to your new item unless you want it to appear first.
+</Note>
+
+## Bootstrap Carousel initialization
+
+After the carousel HTML is injected into the page, `js/script.js` initializes it with a 2-second interval and touch-swipe disabled:
+
+```javascript js/script.js
+const myCarouselElement = document.querySelector('#carouselExampleCaptions');
+const carousel = new bootstrap.Carousel(myCarouselElement, {
+    interval: 2000,
+    touch: false
+});
+```
+
+| Option | Value | Effect |
+|---|---|---|
+| `interval` | `2000` | Advances to the next slide every 2 000 ms |
+| `touch` | `false` | Disables swipe gestures on touch devices |
+
+## Loading the carousel dynamically
+
+Add the placeholder `<div>` in your page's `<body>`:
+
+```html
+<div id="carousel-placeholder"></div>
+```
+
+Then call `loadComponent` in the `DOMContentLoaded` listener:
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    loadComponent('carousel.html', 'carousel-placeholder');
+});
+```
+
+Link the carousel stylesheet in the `<head>`:
+
+```html
+<link href="css/carousel.css" rel="stylesheet">
+```
+
+<Tip>
+The carousel is designed for the homepage only. Pages such as `ranking.html` and `filtros.html` do not include `carousel-placeholder` or the `carousel.css` link.
+</Tip>
+
+<AccordionGroup>
+  <Accordion title="Carousel CSS reference">
+
+```css css/carousel.css
+/* CONTENEDOR PRINCIPAL */
+.carousel-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #000;
+    overflow: hidden;
+}
+
+.carousel-inner {
+    aspect-ratio: 1920 / 800;
+    width: 100%;
+}
+
+.carousel-item {
+    height: 100%;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Flechas centradas */
+.carousel-control-prev,
+.carousel-control-next {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.carousel-item {
+    transition: transform 0.5s ease-in-out;
+}
+```
+
+  </Accordion>
+</AccordionGroup>

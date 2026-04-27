@@ -1,0 +1,80 @@
+---
+title: "Set up AETHON Bookstore and run it in your browser"
+description: "Open AETHON locally with a single command. The project is fully static — no npm install, no build step, and no backend configuration required."
+---
+
+AETHON runs entirely in the browser as a collection of plain HTML, CSS, and JavaScript files, so getting it up and running takes less than a minute. This page walks you through cloning the repository, opening the site, navigating the key pages, and making your first customization.
+
+<Note>
+  Because `index.html` loads the navbar, carousel, and footer via `fetch()`, you must serve the files over HTTP rather than opening them with the `file://` protocol directly. Use the `npx serve` option in step 2 if you see blank component areas.
+</Note>
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the AETHON repository to your local machine:
+
+    ```bash
+    git clone https://github.com/SuarezCaceres/AETHON-ecomerce.git
+    cd AETHON-ecomerce
+    ```
+
+    The repository contains only static assets — HTML pages, a `css/` directory, a `js/` directory, and an `img/` directory. There is no `package.json` or dependency manifest to install.
+  </Step>
+
+  <Step title="Open the site in your browser">
+    You have two options depending on whether you need the reusable components (navbar, carousel, footer) to load correctly.
+
+    **Option A — direct file open (limited):**
+
+    Double-click `index.html` or drag it into your browser. The main content renders, but the navbar, carousel, and footer will be blank because browsers block `fetch()` on `file://` URLs.
+
+    **Option B — local HTTP server (recommended):**
+
+    ```bash
+    npx serve .
+    ```
+
+    Then open the URL printed in your terminal (typically `http://localhost:3000`). All components load correctly over HTTP.
+
+    <Tip>
+      `npx serve` requires Node.js but does not require installing anything permanently — `npx` downloads and runs `serve` on demand.
+    </Tip>
+  </Step>
+
+  <Step title="Explore the pages">
+    Navigate between the main pages to understand the site layout:
+
+    | Page | URL path | What it shows |
+    |---|---|---|
+    | Homepage | `index.html` | Featured books, hero carousel, book grid |
+    | Catalog | `filtros.html` | Full catalog with genre, tag, price, author filters |
+    | Book detail | `book.html` | Individual book page |
+    | Rankings | `ranking.html` | Top-ranked books list |
+    | Login | `login.html` | User sign-in form |
+    | Register | `register.html` | New user registration form |
+
+    All pages share the same navbar, carousel (where applicable), and footer loaded from `navbar.html`, `carousel.html`, and `footer.html`.
+  </Step>
+
+  <Step title="Make your first customization">
+    Open `index.html` and update the featured book title and author in the `libro-destacada-grande` section:
+
+    ```html
+    <span class="libro-grande-category">Novela Destacada</span>
+    <h2 class="libro-grande-titulo">El Señor de los Anillos</h2>
+    <p class="libro-grande-autor">J.R.R. Tolkien</p>
+    ```
+
+    Replace the text values with your own book title and author, save the file, and refresh the browser. To change the accent color used for category labels and links, edit the `color` property of `.libro-grande-category` and `.libro-grande-link` in `css/styles.css`:
+
+    ```css
+    .libro-grande-category {
+        color: #dc3545; /* change this to your preferred accent color */
+    }
+
+    .libro-grande-link {
+        color: #dc3545;
+    }
+    ```
+  </Step>
+</Steps>

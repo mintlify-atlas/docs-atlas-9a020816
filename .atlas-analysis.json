@@ -1,0 +1,80 @@
+{
+  "projectType": "frontend",
+  "projectName": "AETHON Bookstore",
+  "projectDescription": "A dark-themed online bookstore frontend built with HTML, CSS, and Bootstrap 5, featuring a book catalog with filters, rankings, book detail pages, and user authentication forms.",
+  "theme": "willow",
+  "primaryColor": "#dc3545",
+  "lightColor": null,
+  "darkColor": "#000000",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Overview",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["introduction", "getting-started/setup", "getting-started/project-structure"]
+          },
+          {
+            "group": "Pages",
+            "pages": [
+              "pages/home",
+              "pages/catalog",
+              "pages/book-detail",
+              "pages/ranking",
+              "pages/auth"
+            ]
+          },
+          {
+            "group": "UI Components",
+            "pages": [
+              "components/navbar",
+              "components/carousel",
+              "components/footer",
+              "components/book-card"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Customization",
+            "pages": [
+              "guides/theming",
+              "guides/adding-books",
+              "guides/filters-and-search"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "guides/deployment",
+              "guides/faq"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Dark-themed book catalog with genre, label, price, and author filters",
+    "Book detail page with synopsis, tags, reactions, comments, and related books",
+    "Book ranking system with tabs for most visited, most sold, and highest rated books",
+    "Reusable HTML components (navbar, carousel, footer) loaded dynamically via fetch",
+    "Responsive layout built on Bootstrap 5",
+    "User authentication pages (login and registration forms)",
+    "Promotional hero carousel with featured books on the homepage"
+  ],
+  "publicApiSurface": [
+    "filtrar() — filters the book catalog based on selected genre, label, price, author, and search text",
+    "limpiarFiltros() — resets all catalog filters by reloading the page",
+    "render(data) — renders a list of book cards into the catalog grid",
+    "renderRecomendados() — renders a random selection of 5 recommended books",
+    "loadComponent(url, elementId, callback) — dynamically loads an HTML partial into a DOM element",
+    "renderAllGrids() — renders all three ranking grids (visitados, vendidos, valorados)",
+    "initTabs() — initializes tab switching behavior on the ranking page",
+    "initFilter() — initializes the time-period filter dropdown on the ranking page"
+  ]
+}

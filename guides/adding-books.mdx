@@ -1,0 +1,169 @@
+---
+title: "Add new books to the AETHON catalog and ranking pages"
+description: "Add new books to AETHON's JavaScript-powered catalog and rankings pages — no database or build step required, just edit two files."
+---
+
+All book data in AETHON lives in JavaScript arrays and objects directly inside source files — there is no database, API, or CMS. The catalog page reads from the `libros` array in `js/filtros.js`, and the rankings page reads from the `booksData` object inlined in `ranking.html`. Adding a book means appending an entry to the right data structure, saving the file, and refreshing the browser.
+
+## Add a book to the catalog
+
+<Steps>
+  <Step title="Open js/filtros.js">
+    Open `js/filtros.js` in your editor. At the top of the file you will find the `libros` array — this is the single source of truth for every book shown on the catalog page (`filtros.html`).
+  </Step>
+
+  <Step title="Append a new entry to the libros array">
+    Add a new object to the end of the array (before the closing `]`). Every entry must include all six fields shown below — omitting any field will cause filtering or rendering to behave incorrectly.
+
+    ```javascript js/filtros.js
+    const libros = [
+        // ... existing entries ...
+        { titulo: "Cthulhu Mythos", autor: "Lovecraft", genero: "Ciencias", etiqueta: "cálculo", precio: 120, img: "img/libro1.jpg" } // [!code --]
+        { titulo: "Cthulhu Mythos", autor: "Lovecraft", genero: "Ciencias", etiqueta: "cálculo", precio: 120, img: "img/libro1.jpg" }, // [!code ++]
+        { titulo: "Tu Nuevo Libro", autor: "Nombre Autor", genero: "Tecnología", etiqueta: "ingeniería", precio: 85, img: "https://example.com/portada.jpg" } // [!code ++]
+    ];
+    ```
+
+    Make sure to add a comma after the previous last entry — JavaScript arrays require a comma between every element.
+  </Step>
+
+  <Step title="Save and refresh">
+    Save `js/filtros.js` and open `filtros.html` in your browser (or reload if already open). The new book appears in the grid immediately. Because `render(libros)` is called on page load, no build step is needed.
+  </Step>
+</Steps>
+
+## Libro object schema
+
+Each entry in the `libros` array must match this shape exactly:
+
+```javascript
+{
+    titulo:   "Programación Java",          // Book title — shown in the card and searched by the search box
+    autor:    "Autor 2",                    // Author name — must match one of the author filter options
+    genero:   "Tecnología",                 // Category — must match one of the genre filter options exactly
+    etiqueta: "ingeniería",                 // Tag — must match one of the tag filter options exactly
+    precio:   180,                          // Price as a number (integer or float)
+    img:      "https://images.cdn1.buscalibre.com/fit-in/360x360/67/fc/67fca7e561b62592b0027ed6c081a7cc.jpg"
+                                            // Cover image URL or local path relative to the project root
+}
+```
+
+<Warning>
+The `genero` and `etiqueta` values are compared with strict equality (`===`) inside `filtrar()`. If your value does not exactly match the option text in `filtros.html` — including accents and capitalization — the filter will never return that book when that option is selected.
+</Warning>
+
+## Valid genero values
+
+The `#genero` select in `filtros.html` defines the allowed categories. Use one of these exact strings:
+
+- `Universitarios`
+- `Escolares`
+- `Arquitectura y Diseño`
+- `Literatura`
+- `Infantil`
+- `Idiomas`
+- `Tecnología`
+- `Ciencias`
+- `Arte`
+- `Material educativo`
+
+To add a new genre, you must also add a matching `<option>` element inside the `#genero` select in `filtros.html`.
+
+## Valid etiqueta values
+
+The `#etiqueta` select defines the allowed tags. Use one of these exact strings:
+
+- `cálculo`
+- `maquetas`
+- `rápido`
+- `económico`
+- `plan lector`
+- `universitario`
+- `ingeniería`
+
+As with genres, adding a new tag requires a matching `<option>` in the `#etiqueta` select in `filtros.html`.
+
+## Full libros array for reference
+
+Here is the complete `libros` array from `js/filtros.js` at the time of writing, showing every field and a variety of CDN image URLs:
+
+```javascript js/filtros.js
+const libros = [
+    { titulo: "Cthulhu Mythos",        autor: "Lovecraft",  genero: "Ciencias",             etiqueta: "cálculo",      precio: 120, img: "img/libro1.jpg" },
+    { titulo: "Lord of Mysteries",     autor: "Cuttlefish", genero: "Literatura",           etiqueta: "universitario", precio: 80,  img: "https://static.wikia.nocookie.net/doblaje/images/f/ff/Lord_Of_Mysteries_-_Poster.jpg/revision/latest?cb=20250621224213&path-prefix=es" },
+    { titulo: "Deep Sea",              autor: "Autor 1",    genero: "Tecnología",           etiqueta: "ingeniería",   precio: 200, img: "https://m.media-amazon.com/images/M/MV5BZjUyNTM2ZjAtNWRkZi00ZDFiLWI4MDgtMTE1YTZkYTYwN2FhXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg" },
+    { titulo: "1888",                  autor: "Autor 2",    genero: "Literatura",           etiqueta: "rápido",       precio: 60,  img: "https://images.cdn2.buscalibre.com/fit-in/360x360/dd/fd/ddfd42569930ef3bca4cf2af83ac4a09.jpg" },
+    { titulo: "Álgebra Básica",        autor: "Autor 1",    genero: "Universitarios",       etiqueta: "cálculo",      precio: 45,  img: "https://elsolucionario.net/wp-content/archivos/2018/03/algebra-basica-david-gonzales-lopez-2da-edicion.jpg" },
+    { titulo: "Geometría Escolar",     autor: "Autor 2",    genero: "Escolares",            etiqueta: "económico",    precio: 30,  img: "https://dojiw2m9tvv09.cloudfront.net/40745/product/img21729863307031514.png" },
+    { titulo: "Diseño Arquitectónico", autor: "Autor 1",    genero: "Arquitectura y Diseño",etiqueta: "maquetas",     precio: 150, img: "https://storage-aws-production.publica.la/bookwire-direct-sales/issues/2024/08/B2dcUm6rpH7b086s/d56f4d3f-7e20-4bbe-9620-701f868f2ea1_cover.jpg" },
+    { titulo: "Plan Lector 1",         autor: "Autor 2",    genero: "Infantil",             etiqueta: "plan lector",  precio: 35,  img: "https://distribuidoranavarrete.com.pe/wp-content/uploads/PLAN-LECTOR-PRIMARIA-1.jpg" },
+    { titulo: "English Basics",        autor: "Autor 1",    genero: "Idiomas",              etiqueta: "rápido",       precio: 55,  img: "https://images.cdn3.buscalibre.com/fit-in/360x360/36/89/368937374a78524713bc398e9b350904.jpg" },
+    { titulo: "Programación Java",     autor: "Autor 2",    genero: "Tecnología",           etiqueta: "ingeniería",   precio: 180, img: "https://images.cdn1.buscalibre.com/fit-in/360x360/67/fc/67fca7e561b62592b0027ed6c081a7cc.jpg" },
+    { titulo: "Física General",        autor: "Autor 1",    genero: "Ciencias",             etiqueta: "universitario", precio: 95,  img: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1565405549l/51094275.jpg" },
+    { titulo: "Historia del Arte",     autor: "Autor 2",    genero: "Arte",                 etiqueta: "económico",    precio: 70,  img: "https://images.cdn2.buscalibre.com/fit-in/360x360/4a/b1/4ab1d2d22c23e4c684f155ce74d3b965.jpg" },
+    { titulo: "Material Didáctico",    autor: "Autor 1",    genero: "Material educativo",   etiqueta: "económico",    precio: 40,  img: "https://edicionesabedul.pe/wp-content/uploads/2019/09/materialdidactico.jpg" },
+    { titulo: "Cálculo Avanzado",      autor: "Lovecraft",  genero: "Universitarios",       etiqueta: "cálculo",      precio: 210, img: "https://images.cdn3.buscalibre.com/fit-in/360x360/24/fe/24fed8e53d3e94c7c7814ec01c5d17f2.jpg" },
+    { titulo: "Diseño UX/UI",          autor: "Cuttlefish", genero: "Tecnología",           etiqueta: "rápido",       precio: 130, img: "https://www.designar.cl/wp-content/uploads/2022/08/libro-ux-banner.png" }
+];
+```
+
+<Tip>
+Use CDN-hosted image URLs for book covers rather than local files. The existing catalog uses providers like Amazon (`m.media-amazon.com`), Buscalibre (`images.cdn1.buscalibre.com`, `images.cdn2.buscalibre.com`, `images.cdn3.buscalibre.com`), and Cloudfront (`dojiw2m9tvv09.cloudfront.net`). Search for your book on any of these retailers and copy the direct image URL from the cover thumbnail.
+</Tip>
+
+## Add a book to the rankings
+
+The rankings page (`ranking.html`) stores its data in a `booksData` object with three arrays — one per ranking tab. These books are independent of the `libros` catalog and are rendered with rank badges (gold for #1, silver for #2, bronze for #3).
+
+<Steps>
+  <Step title="Open ranking.html">
+    Open `ranking.html` in your editor. Scroll to the `<script>` block and locate the `booksData` constant.
+  </Step>
+
+  <Step title="Choose a ranking tab to update">
+    `booksData` has three keys: `visitados` (most visited), `vendidos` (best sellers), and `valorados` (highest rated). Each is an independent array. Decide which list your book belongs to.
+  </Step>
+
+  <Step title="Append an entry to the chosen array">
+    Each ranking entry uses three fields — `title`, `author`, and `img`. Position in the array determines the rank badge shown on the card.
+
+    ```javascript ranking.html
+    const booksData = {
+        visitados: [
+            { title: "Cthulhu Mythos",   author: "H.P. Lovecraft",          img: "img/libro1.jpg" },
+            { title: "Deep Sea Amber",   author: "Yuan Tang",                img: "img/libro2.png" },
+            // ... existing entries ...
+            { title: "Arcanum Unbounded", author: "Brandon Sanderson",      img: "img/libro2.png" } // [!code --]
+            { title: "Arcanum Unbounded", author: "Brandon Sanderson",      img: "img/libro2.png" }, // [!code ++]
+            { title: "Tu Nuevo Libro",   author: "Nombre Autor",            img: "https://example.com/portada.jpg" } // [!code ++]
+        ],
+        vendidos: [ /* ... */ ],
+        valorados: [ /* ... */ ]
+    };
+    ```
+
+    The first entry in the array receives rank badge `#1` (gold), the second receives `#2` (silver), the third `#3` (bronze), and all others display their numeric position.
+  </Step>
+
+  <Step title="Save and refresh">
+    Save `ranking.html` and reload the page. The new book appears at the position matching its index in the array. Rank badges are assigned automatically by the `bookCard(book, i + 1)` call inside `renderAllGrids()`.
+  </Step>
+</Steps>
+
+<AccordionGroup>
+  <Accordion title="Ranking entry schema">
+    Ranking entries use a simpler schema than catalog entries — only `title`, `author`, and `img` are needed. The price, genre, and tag fields are not used on the rankings page.
+
+    ```javascript
+    {
+        title:  "El Nombre del Viento",    // Display title on the card
+        author: "Patrick Rothfuss",        // Author shown below the title
+        img:    "img/libro1.jpg"           // Cover image — local path or full URL
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Ranking tabs and time filters">
+    The three tabs — Visitados, Vendidos, and Valorados — each render their own array independently. The time filter dropdown (Diario, Semanal, Mensual, Anual, Todo el tiempo) updates the label and highlight state but does not actually filter the data — the displayed list is always the full array for each tab.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,185 @@
+---
+title: 'Book ranking: most visited, sold, and top-rated titles'
+description: 'See how the AETHON ranking page works, including its three tab panels, time-period filter dropdown, book data, and the JavaScript functions that drive it.'
+---
+
+The AETHON ranking page (`ranking.html`) displays the most popular books across three dimensions — most visited, most sold, and highest rated. All data is embedded directly in the page and rendered client-side without any network requests.
+
+## Page structure
+
+The ranking page has a single `.ranking-section` that contains:
+
+1. A page heading ("Ranking de Libros")
+2. A **nav row** with three tab buttons and a time-period filter dropdown
+3. Three **tab panels**, one for each ranking dimension
+
+## Tab panels
+
+Clicking a tab button shows the corresponding panel and hides the other two. The active panel's `<div>` carries the class `ranking-panel active`.
+
+<Tabs>
+  <Tab title="Visitados">
+    The **Visitados** panel (`#panel-visitados`) lists the 20 most-viewed books. The top five entries are:
+
+    | Rank | Title | Author |
+    |------|-------|--------|
+    | 1 | Cthulhu Mythos | H.P. Lovecraft |
+    | 2 | Deep Sea Amber | Yuan Tang |
+    | 3 | Lord of Mysteries | CuttleFish Loves Diving |
+    | 4 | 1888 | Silver |
+    | 5 | Release the Witch | Er Mu |
+
+    The full list continues with titles from Patrick Rothfuss, Frank Herbert, Isaac Asimov, William Gibson, and Brandon Sanderson (who contributes eight entries).
+  </Tab>
+  <Tab title="Vendidos">
+    The **Vendidos** panel (`#panel-vendidos`) lists the 20 best-selling books. The top five entries are:
+
+    | Rank | Title | Author |
+    |------|-------|--------|
+    | 1 | Dune | Frank Herbert |
+    | 2 | El Señor de los Anillos | J.R.R. Tolkien |
+    | 3 | 1984 | George Orwell |
+    | 4 | Cien Años de Soledad | G. García Márquez |
+    | 5 | Harry Potter I | J.K. Rowling |
+
+    Classic literary titles dominate this list, including Don Quijote, La Odisea, El Alquimista, and works by Tolstói and Victor Hugo.
+  </Tab>
+  <Tab title="Valorados">
+    The **Valorados** panel (`#panel-valorados`) lists the 20 highest-rated books. The top five entries are:
+
+    | Rank | Title | Author |
+    |------|-------|--------|
+    | 1 | Juego de Tronos | George R.R. Martin |
+    | 2 | El Nombre del Viento | Patrick Rothfuss |
+    | 3 | La Vía del Rey | Brandon Sanderson |
+    | 4 | El Problema de los 3 Cuerpos | Liu Cixin |
+    | 5 | Hyperion | Dan Simmons |
+
+    Science fiction and epic fantasy dominate, with entries from Orson Scott Card, Ursula K. Le Guin, Isaac Asimov, Arthur C. Clarke, and Andy Weir.
+  </Tab>
+</Tabs>
+
+## Time-period filter
+
+The dropdown next to the tabs lets you select the time window for the ranking. The selected period is stored per-tab so switching tabs restores the previously chosen filter for that tab.
+
+Available options:
+
+- Diario *(default)*
+- Semanal
+- Mensual
+- Anual
+- Todo el tiempo
+
+<Note>
+The time-period filter only updates the dropdown label and highlights the active option visually. The underlying `booksData` arrays are static and do not change based on the selected period. Connecting the filter to real time-windowed data requires a backend API or separate data sets per period.
+</Note>
+
+## Book data
+
+All three ranking lists are stored in the `booksData` object. Each entry is a plain object with three fields:
+
+```javascript
+const booksData = {
+    visitados: [
+        { title: "Cthulhu Mythos",      author: "H.P. Lovecraft",          img: "img/libro1.jpg" },
+        { title: "Deep Sea Amber",       author: "Yuan Tang",               img: "img/libro2.png" },
+        { title: "Lord of Mysteries",    author: "CuttleFish Loves Diving", img: "img/libro1.jpg" },
+        // ... 17 more
+    ],
+    vendidos: [
+        { title: "Dune",                 author: "Frank Herbert",            img: "img/libro1.jpg" },
+        { title: "El Señor de los Anillos", author: "J.R.R. Tolkien",       img: "img/libro2.png" },
+        { title: "1984",                 author: "George Orwell",            img: "img/libro1.jpg" },
+        // ... 17 more
+    ],
+    valorados: [
+        { title: "Juego de Tronos",      author: "George R.R. Martin",      img: "img/libro1.jpg" },
+        { title: "El Nombre del Viento", author: "Patrick Rothfuss",         img: "img/libro2.png" },
+        { title: "La Vía del Rey",       author: "Brandon Sanderson",        img: "img/libro1.jpg" },
+        // ... 17 more
+    ]
+};
+```
+
+Each book card in the grid receives a rank badge. The badge CSS class varies by position:
+
+| Rank | Class |
+|------|-------|
+| 1 | `rank-1` (gold) |
+| 2 | `rank-2` (silver) |
+| 3 | `rank-3` (bronze) |
+| 4+ | `rank-other` |
+
+## JavaScript functions
+
+### `renderAllGrids()`
+
+Called once on `DOMContentLoaded`. Iterates over all three tab keys, finds the corresponding `#grid-{tab}` element, and fills it with `bookCard()` HTML for every entry in that tab's data array.
+
+```javascript
+function renderAllGrids() {
+    ['visitados', 'vendidos', 'valorados'].forEach(function (tab) {
+        var grid = document.getElementById('grid-' + tab);
+        if (!grid) return;
+        grid.innerHTML = booksData[tab].map(function (book, i) {
+            return bookCard(book, i + 1);
+        }).join('');
+    });
+}
+```
+
+### `initTabs()`
+
+Attaches `click` listeners to each `.ranking-tab-btn`. On click it removes `active` from all tabs and panels, adds it to the clicked tab and its matching panel, and restores the time-filter label for that tab.
+
+```javascript
+function initTabs() {
+    var tabs = document.querySelectorAll('.ranking-tab-btn');
+    tabs.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            tabs.forEach(function (t) {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            this.classList.add('active');
+            this.setAttribute('aria-selected', 'true');
+
+            document.querySelectorAll('.ranking-panel').forEach(function (p) {
+                p.classList.remove('active');
+            });
+            activeTab = this.dataset.tab;
+            document.getElementById('panel-' + activeTab).classList.add('active');
+
+            document.getElementById('filter-label').textContent = tabFilters[activeTab];
+            updateFilterHighlight();
+        });
+    });
+}
+```
+
+### `initFilter()`
+
+Attaches `click` listeners to each `.ranking-filter-item` in the dropdown. Selecting an item stores the value in `tabFilters[activeTab]`, updates the visible label, and closes the Bootstrap dropdown.
+
+```javascript
+function initFilter() {
+    var items = document.querySelectorAll('.ranking-filter-item');
+    items.forEach(function (item) {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            var value = this.dataset.value;
+            tabFilters[activeTab] = value;
+            document.getElementById('filter-label').textContent = value;
+            updateFilterHighlight();
+            var dropdownEl = document.getElementById('rankingFilterBtn');
+            var dropdown = bootstrap.Dropdown.getInstance(dropdownEl);
+            if (dropdown) dropdown.hide();
+        });
+    });
+}
+```
+
+<Tip>
+To add a fourth ranking dimension (e.g., "Mejor precio"), add a new key to `booksData`, a new tab button with `data-tab="nuevotab"`, a new panel `<div id="panel-nuevotab" class="ranking-panel">`, and an initial entry in `tabFilters`.
+</Tip>

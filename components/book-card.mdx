@@ -1,0 +1,158 @@
+---
+title: 'Book card: catalog and featured sections display card'
+description: 'AETHON book cards display a cover image, title, and author. Static cards are in index.html; catalog and ranking cards are rendered from JS data arrays.'
+---
+
+The book card is the core display unit across AETHON. It surfaces a book's cover image, title, and author name in a compact, clickable tile. The same visual pattern appears in two contexts: the static **Libros Destacados** grid on the homepage (written directly in `index.html`) and the dynamically rendered catalog grid in the Libros and Ranking pages (built via JavaScript).
+
+## Static book card
+
+The homepage uses anchor-wrapped `.libro-card` divs written directly in the HTML. The full structure of one card is:
+
+```html index.html
+<a href="book.html" style="text-decoration: none; color: inherit;">
+  <div class="libro-card">
+    <img src="img/libro1.jpg" class="libro-card-img">
+    <div class="libro-card-body">
+      <h5>#1 - El Señor de los Anillos</h5>
+      <p>J.R.R. Tolkien</p>
+    </div>
+  </div>
+</a>
+```
+
+The `<a>` wrapper strips the default link underline and inherits the surrounding text color so the card reads as a pure visual tile. Clicking anywhere on the card navigates to `book.html`.
+
+The homepage features four cards in the **Libros Destacados** section:
+
+| Rank | Title | Author |
+|---|---|---|
+| #1 | El Señor de los Anillos | J.R.R. Tolkien |
+| #2 | Breve Historia del Tiempo | Stephen Hawking |
+| #3 | 1984 | George Orwell |
+| #4 | Cien Años de Soledad | Gabriel García Márquez |
+
+## Dynamic rendering pattern
+
+Catalog pages build cards from a JavaScript data array using template literals. The `filtros.js` pattern appends each card to a container grid element:
+
+```javascript filtros.js
+grid.innerHTML += `
+<div class="card">
+    <img src="${libro.img}">
+    <div class="card-body">
+        <h4>${libro.titulo}</h4>
+        <p>${libro.autor}</p>
+    </div>
+</div>`;
+```
+
+Here `libro` is an object from the data array with `img`, `titulo`, and `autor` properties. The loop appends one card per book; the grid CSS handles column layout.
+
+## CSS classes
+
+<AccordionGroup>
+  <Accordion title=".libro-card — card container">
+
+```css css/styles.css
+.libro-card {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+```
+
+The dark background (`#1a1a1a`) and subtle white border give each card definition against the black page background. `overflow: hidden` clips the cover image to the card's rounded corners.
+
+  </Accordion>
+  <Accordion title=".libro-card-img — cover image">
+
+```css css/styles.css
+.libro-card-img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+}
+```
+
+The image is fixed at 300 px tall and uses `object-fit: cover` so covers of any aspect ratio fill the space without distortion.
+
+  </Accordion>
+  <Accordion title=".libro-card-body — text area">
+
+```css css/styles.css
+.libro-card-body {
+    padding: 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+```
+
+`flex-grow: 1` ensures the text area expands to fill remaining card height, keeping card bottoms aligned in a multi-column grid.
+
+  </Accordion>
+</AccordionGroup>
+
+## Hover effect
+
+When a user hovers over a `.libro-card`, it lifts 5 px and gains a red glow:
+
+```css css/styles.css
+.libro-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(220, 53, 69, 0.3);
+}
+```
+
+The `transition` on `.libro-card` (0.3 s ease for both `transform` and `box-shadow`) makes the lift and glow animate smoothly. The red shadow uses AETHON's accent color (`#dc3545` at 30 % opacity).
+
+## Ranking card variant
+
+The ranking page (`ranking.html`) uses a variant that overlays a numbered rank badge on top of the cover image. The badge color changes for the top three positions:
+
+```javascript ranking.html
+function bookCard(book, rank) {
+    return `
+        <div class="ranking-card">
+            <div class="ranking-card-img-wrap">
+                <img src="${book.img}" alt="${book.title}" loading="lazy" onerror="this.style.display='none'">
+                <div class="ranking-badge ${badgeClass(rank)}">${rank}</div>
+            </div>
+            <div class="ranking-card-body">
+                <div class="ranking-card-title">${book.title}</div>
+                <div class="ranking-card-author">por ${book.author}</div>
+            </div>
+        </div>`;
+}
+```
+
+The `badgeClass` helper assigns a CSS class based on rank:
+
+```javascript ranking.html
+function badgeClass(rank) {
+    if (rank === 1) return 'rank-1';
+    if (rank === 2) return 'rank-2';
+    if (rank === 3) return 'rank-3';
+    return 'rank-other';
+}
+```
+
+| Class | Rank | Intended style |
+|---|---|---|
+| `rank-1` | 1st place | Gold badge |
+| `rank-2` | 2nd place | Silver badge |
+| `rank-3` | 3rd place | Bronze badge |
+| `rank-other` | 4th and beyond | Default badge |
+
+The badge sits inside `.ranking-card-img-wrap`, positioned absolutely over the cover image, so the rank number is always visible regardless of the cover art.
+
+<Tip>
+If you add a new page that needs to display books, use the dynamic rendering pattern from `filtros.js` rather than hard-coding cards in HTML. This keeps your data in one place and makes it easy to add, remove, or reorder books without touching the markup.
+</Tip>

@@ -1,0 +1,190 @@
+---
+title: "How catalog filtering and live search work in AETHON"
+description: "A full walkthrough of filtros.js: the filtrar(), render(), and renderRecomendados() functions, event wiring, and how to add price filtering."
+---
+
+The catalog page (`filtros.html`) lets users narrow down the book list by genre, tag, author, and title simultaneously, then sort the results by price or alphabetically. All filtering logic lives in `js/filtros.js` — a single file with no external dependencies beyond the `libros` array at the top. Every filter change re-runs the same pipeline: read the current control values, apply AND logic across all active filters, optionally sort, then re-render the grid.
+
+## The filtrar() function
+
+`filtrar()` is the heart of the catalog page. It reads five inputs, applies them as AND conditions, optionally sorts the result, and hands it to `render()`.
+
+```javascript js/filtros.js
+function filtrar() {
+    const genero = document.getElementById("genero").value;
+    const etiqueta = document.getElementById("etiqueta").value;
+    const precio = document.getElementById("precio").value;
+    const autor = document.getElementById("autor").value;
+    const search = document.getElementById("search").value.toLowerCase();
+
+    let resultado = libros.filter(l =>
+        (genero === "Seleccione género" || l.genero === genero) &&
+        (etiqueta === "Seleccione etiqueta" || l.etiqueta === etiqueta) &&
+        (autor === "Seleccione autor" || l.autor === autor) &&
+        (l.titulo.toLowerCase().includes(search))
+    );
+
+    const orden = document.getElementById("orden").value;
+
+    if (orden === "precio-asc") {
+        resultado.sort((a, b) => a.precio - b.precio);
+    } else if (orden === "precio-desc") {
+        resultado.sort((a, b) => b.precio - a.precio);
+    } else if (orden === "az") {
+        resultado.sort((a, b) => a.titulo.localeCompare(b.titulo));
+    }
+
+    render(resultado);
+}
+```
+
+**How the AND logic works:** each condition inside `libros.filter()` is short-circuited. When a select is in its default "Seleccione" state, its condition is always `true` and has no effect. When the user picks a real value, the condition becomes a strict equality check (`l.genero === genero`). A book only passes if every active condition is satisfied.
+
+**Sort options:** after filtering, the `#orden` select is read. The three valid values are:
+
+| Value | Behavior |
+|---|---|
+| `precio-asc` | Ascending by `precio` (cheapest first) |
+| `precio-desc` | Descending by `precio` (most expensive first) |
+| `az` | Alphabetical by `titulo` using `localeCompare` |
+
+If `#orden` has its default empty value, no sort is applied and the original array order is preserved.
+
+<Note>
+The `precio` variable is read from the `#precio` select but is **not wired into the `.filter()` call**. See [Adding price filtering](#adding-price-filtering) below for how to add it.
+</Note>
+
+## The render() function
+
+`render(data)` receives the filtered (and sorted) array, clears the grid, updates the result count, and injects one card per book.
+
+```javascript js/filtros.js
+const grid = document.getElementById("grid");
+const contador = document.getElementById("contador");
+
+function render(data) {
+    grid.innerHTML = "";
+    contador.textContent = data.length + " libros encontrados";
+
+    data.forEach(libro => {
+        grid.innerHTML += `
+<div class="card">
+    <img src="${libro.img}">
+    <div class="card-body">
+        <h4>${libro.titulo}</h4>
+        <p>${libro.autor}</p>
+    </div>
+</div>`;
+    });
+}
+```
+
+`render()` is also called at page load with the full `libros` array (`render(libros)` on the last line of the file), so the catalog is populated immediately without any user interaction.
+
+<Warning>
+`render()` uses `innerHTML +=` inside a `forEach` loop, which re-parses the entire grid string on every iteration. For large catalogs this can become slow. Consider building the full HTML string first with `Array.prototype.map().join('')` and assigning it once.
+</Warning>
+
+## The renderRecomendados() function
+
+`renderRecomendados()` picks five books at random from the full `libros` array and renders them in the "Libros que te pueden gustar" section below the main grid. It runs once at page load and does not react to filter changes.
+
+```javascript js/filtros.js
+const recomendadosDiv = document.getElementById("recomendados");
+
+function renderRecomendados() {
+    recomendadosDiv.innerHTML = "";
+
+    // pick 5 random books
+    const randomLibros = [...libros].sort(() => 0.5 - Math.random()).slice(0, 5);
+
+    randomLibros.forEach(libro => {
+        recomendadosDiv.innerHTML += `
+      <div class="card">
+    <img src="${libro.img}">
+    <div class="card-body">
+        <h4>${libro.titulo}</h4>
+        <p>${libro.autor}</p>
+    </div>
+</div>`;
+    });
+}
+
+renderRecomendados();
+```
+
+The shuffle uses `[...libros].sort(() => 0.5 - Math.random())` — a spread copy of `libros` is sorted with a random comparator so the original array order is not mutated. `slice(0, 5)` then takes the first five results.
+
+## Event listeners
+
+Every `<select>` and `<input>` on the page is wired to `filtrar()` with both `change` and `keyup` events:
+
+```javascript js/filtros.js
+document.querySelectorAll("select, input").forEach(el => {
+    el.addEventListener("change", filtrar);
+    el.addEventListener("keyup", filtrar);
+});
+```
+
+`change` fires when a select option is chosen or a text input loses focus after a change. `keyup` fires on every keystroke in the search box, giving the user live search-as-you-type behavior. Both events call the same `filtrar()` function, so the filtering pipeline is identical regardless of which event triggered it.
+
+## limpiarFiltros()
+
+The "Limpiar filtros" button calls `limpiarFiltros()`, which does a full page reload:
+
+```javascript js/filtros.js
+function limpiarFiltros() {
+    location.reload();
+}
+```
+
+This resets all selects and inputs to their default HTML values and re-runs `render(libros)` and `renderRecomendados()` on load. A page reload is the simplest approach but also reloads all assets — if you want an in-place reset, you can instead reset each control value manually and call `filtrar()` directly.
+
+## Adding price filtering
+
+The `#precio` select has four ranges defined in `filtros.html` (`0 - 50`, `50 - 100`, `100 - 200`, `200+`), but the current `filtrar()` function reads `precio` without using it. Here is how to wire it in:
+
+```javascript js/filtros.js
+function filtrar() {
+    const genero = document.getElementById("genero").value;
+    const etiqueta = document.getElementById("etiqueta").value;
+    const precio = document.getElementById("precio").value;
+    const autor = document.getElementById("autor").value;
+    const search = document.getElementById("search").value.toLowerCase();
+
+    let resultado = libros.filter(l =>
+        (genero === "Seleccione género" || l.genero === genero) &&
+        (etiqueta === "Seleccione etiqueta" || l.etiqueta === etiqueta) &&
+        (autor === "Seleccione autor" || l.autor === autor) &&
+        (l.titulo.toLowerCase().includes(search)) // [!code --]
+        (l.titulo.toLowerCase().includes(search)) && // [!code ++]
+        (precio === "Seleccione" || matchesPrecio(l.precio, precio)) // [!code ++]
+    );
+
+    const orden = document.getElementById("orden").value;
+
+    if (orden === "precio-asc") {
+        resultado.sort((a, b) => a.precio - b.precio);
+    } else if (orden === "precio-desc") {
+        resultado.sort((a, b) => b.precio - a.precio);
+    } else if (orden === "az") {
+        resultado.sort((a, b) => a.titulo.localeCompare(b.titulo));
+    }
+
+    render(resultado);
+}
+```
+
+Add the helper function above `filtrar()`:
+
+```javascript js/filtros.js
+function matchesPrecio(precio, rango) { // [!code ++]
+    if (rango === "0 - 50")    return precio >= 0   && precio < 50;  // [!code ++]
+    if (rango === "50 - 100")  return precio >= 50  && precio < 100; // [!code ++]
+    if (rango === "100 - 200") return precio >= 100 && precio < 200; // [!code ++]
+    if (rango === "200+")      return precio >= 200;                 // [!code ++]
+    return true; // [!code ++]
+} // [!code ++]
+```
+
+The default `"Seleccione"` option short-circuits the check (returns `true`) so books are not filtered when no price range is selected — matching the same pattern used by genre, tag, and author.

@@ -1,0 +1,125 @@
+---
+title: "AETHON project structure: files and folders explained"
+description: "A guided tour of every HTML page, CSS stylesheet, and JavaScript file in AETHON, explaining what each one does and how the pieces connect."
+---
+
+AETHON is organized as a flat collection of HTML pages alongside dedicated `css/`, `js/`, and `img/` directories. There is no framework, no bundler, and no generated output folder — what you see in the repository is exactly what runs in the browser. This page describes every file and directory so you know where to look when you want to edit a page, restyle a component, or trace a behavior back to its source.
+
+## Directory tree
+
+```text
+AETHON-ecomerce/
+├── index.html          # Homepage
+├── book.html           # Book detail page
+├── filtros.html        # Catalog with filters
+├── ranking.html        # Book rankings
+├── login.html          # User login form
+├── register.html       # User registration form
+├── navbar.html         # Reusable navbar partial
+├── carousel.html       # Reusable hero carousel partial
+├── footer.html         # Reusable footer partial
+├── css/
+│   ├── styles.css          # Global layout and dark theme base
+│   ├── navbar.css          # Navbar component styles
+│   ├── carousel.css        # Hero carousel styles
+│   ├── footer.css          # Footer styles
+│   ├── book.css            # Book detail page styles
+│   ├── filtros.css         # Catalog filter sidebar and grid styles
+│   ├── ranking.css         # Rankings page styles
+│   ├── register.css        # Registration form styles
+│   ├── blogInformacion.css # Blog/info section styles
+│   ├── seccion-extra.css   # Additional section styles
+│   └── bootstrap.min.css   # Bootstrap 5 (vendored)
+├── js/
+│   ├── script.js           # Bootstrap carousel initialization
+│   ├── filtros.js          # Catalog filter and sort logic
+│   ├── book.js             # Book detail page logic
+│   └── bootstrap.bundle.min.js  # Bootstrap 5 JS (vendored)
+└── img/
+    └── ...                 # Book cover images and other assets
+```
+
+## HTML pages
+
+### `index.html` — homepage
+
+The main entry point. It loads the navbar, hero carousel, and footer as partials using `fetch()`, then renders two featured-book sections (a large hero card and a secondary spotlight) followed by a responsive four-column book grid. All text is in Spanish.
+
+### `book.html` — book detail page
+
+Displays the full details for a single book: cover image, title, author, description, and a purchase or "read more" call to action. Styled by `css/book.css` and controlled by `js/book.js`.
+
+### `filtros.html` — catalog with filters
+
+The main catalog page. A left-hand filter sidebar lets visitors narrow books by **Género** (genre), **Etiqueta** (tag), **Precio** (price range), and **Autor** (author). Available genres include Universitarios, Escolares, Arquitectura y Diseño, Literatura, Infantil, Idiomas, Tecnología, Ciencias, Arte, and Material educativo. A search bar and sort dropdown sit above the results grid. All filter behavior is handled in `js/filtros.js`.
+
+### `ranking.html` — book rankings
+
+Lists books ordered by ranking or popularity. Styled by `css/ranking.css`.
+
+### `login.html` — user login form
+
+A sign-in form for returning users. The form is purely front-end; there is no backend authentication.
+
+### `register.html` — user registration form
+
+A new-account registration form. Styled by `css/register.css`.
+
+## Reusable partials
+
+AETHON uses a lightweight component pattern: three HTML files are fetched at runtime and injected into placeholder `<div>` elements on each page.
+
+```js
+function loadComponent(url, elementId) {
+    fetch(url)
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById(elementId).innerHTML = data;
+        })
+        .catch(error => console.error('Error cargando ' + url + ':', error));
+}
+```
+
+| Partial | Placeholder ID | Purpose |
+|---|---|---|
+| `navbar.html` | `navbar-placeholder` | Top navigation bar with site links |
+| `carousel.html` | `carousel-placeholder` | Hero image carousel (homepage) |
+| `footer.html` | `footer-placeholder` | Site-wide footer |
+
+<Warning>
+  Because these partials are loaded via `fetch()`, you must serve the project over HTTP (for example with `npx serve .`). Opening `index.html` directly with the `file://` protocol will leave the navbar, carousel, and footer blank.
+</Warning>
+
+## CSS directory
+
+All custom styles live in `css/`. Each page or component has its own dedicated stylesheet, which is linked only in the pages that need it. The base dark theme — black background (`#000000`), white text (`#ffffff`), and dark card surfaces (`#1a1a1a`) — is defined in `css/styles.css` and inherited by every page.
+
+| File | Scope |
+|---|---|
+| `styles.css` | Global body, book cards, featured-book sections, responsive grid |
+| `navbar.css` | Navigation bar layout and link styles |
+| `carousel.css` | Hero carousel height, caption, and control styles |
+| `footer.css` | Footer layout and link styles |
+| `book.css` | Book detail page layout |
+| `filtros.css` | Filter sidebar, catalog grid, and top-bar controls |
+| `ranking.css` | Rankings list layout |
+| `register.css` | Registration form layout and input styles |
+| `blogInformacion.css` | Informational blog section on the homepage |
+| `seccion-extra.css` | Extra homepage section styles |
+
+Bootstrap 5 CSS (`bootstrap.min.css`) and its variants are vendored in the same directory and are not modified.
+
+## JavaScript directory
+
+| File | Purpose |
+|---|---|
+| `script.js` | Initializes the Bootstrap 5 carousel on the homepage with a 2-second auto-advance interval |
+| `filtros.js` | Handles all filter, search, sort, and recommendations on `filtros.html` |
+| `book.js` | Loads navbar/footer, manages genre tag pill toggling, and powers the "Recomendaciones" horizontal carousel on `book.html` |
+| `seccion-extra.js` | Handles emoji reactions, the rich-text comment editor (formatting + word count + submit), and comment sort tabs on `book.html` |
+
+Bootstrap 5's JavaScript bundle (`bootstrap.bundle.min.js`) is vendored alongside the custom scripts.
+
+## Image directory
+
+`img/` holds all book cover images and other visual assets referenced by the HTML pages. Images are referenced with relative paths such as `img/libro1.jpg`.

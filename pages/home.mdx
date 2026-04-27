@@ -1,0 +1,115 @@
+---
+title: 'AETHON homepage: carousel, featured books, and layout'
+description: 'Learn how the AETHON homepage is structured, from the auto-playing hero carousel to the featured book sections and component-loading pattern.'
+---
+
+The AETHON homepage is the primary entry point for the bookstore. It combines a full-width hero carousel with curated book sections to surface featured content and drive users toward individual book detail pages.
+
+## Page layout
+
+The homepage (`index.html`) is divided into four main areas:
+
+1. **Hero carousel** — a Bootstrap 5 auto-playing slideshow injected from `carousel.html`
+2. **Novela Destacada** — a large, full-width featured book block
+3. **Libros Destacados** — a four-book grid of top-ranked titles
+4. **Secondary featured book** — a second wide-format book highlight
+
+The navbar and footer are also injected dynamically at runtime.
+
+## Hero carousel
+
+The carousel lives in its own partial file (`carousel.html`) and is injected into `#carousel-placeholder` on page load. It contains three slides, each with a cover image and a caption overlay:
+
+| Slide | Title | Description |
+|-------|-------|-------------|
+| 1 | Ciudad y los perros | A raw novel about cadets facing loyalty, betrayal, and survival |
+| 2 | El Señor de los Anillos | An epic adventure in Middle Earth full of magic and legendary battles |
+| 3 | Breve Historia del Tiempo | An accessible introduction to the mysteries of the universe |
+
+The carousel uses Bootstrap's `data-bs-ride="carousel"` attribute for auto-play and includes previous/next navigation buttons along with dot indicators.
+
+```html
+<!-- carousel.html — simplified structure -->
+<div class="carousel-wrapper">
+  <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img src="img/cidudad y los perros - PORTADA.png" class="d-block w-100" alt="Slide 1">
+        <div class="carousel-caption d-none d-md-block">
+          <h5 class="fw-bold">Ciudad y los perros</h5>
+          <p>Una novela cruda y reveladora sobre un grupo de jóvenes cadetes...</p>
+        </div>
+      </div>
+      <!-- slides 2 and 3 follow the same pattern -->
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </button>
+  </div>
+</div>
+```
+
+## Novela Destacada section
+
+Below the carousel, a large two-column block spotlights a single book. The left column holds the editorial text (category badge, title, author, description, and a "Leer más" link), while the right column displays the cover image.
+
+The current featured title is **El Señor de los Anillos** by J.R.R. Tolkien.
+
+## Libros Destacados grid
+
+This section renders four book cards in a responsive grid under the heading "Libros Destacados". Each card links to `book.html` and shows the cover image, a ranked title, and the author name.
+
+| Rank | Title | Author |
+|------|-------|--------|
+| #1 | El Señor de los Anillos | J.R.R. Tolkien |
+| #2 | Breve Historia del Tiempo | Stephen Hawking |
+| #3 | 1984 | George Orwell |
+| #4 | Cien Años de Soledad | Gabriel García Márquez |
+
+## Secondary featured book
+
+A second wide-format section follows the grid. It highlights **Breve Historia del Tiempo** by Stephen Hawking under the category label "Ciencia", using the same two-column layout as the Novela Destacada section.
+
+## Component-loading pattern
+
+AETHON uses a fetch-based partial HTML injection pattern throughout the project. A single `loadComponent()` helper function fetches an external HTML file and inserts its content into a target element by ID. This keeps the navbar, carousel, and footer in dedicated files that can be reused across pages without duplication.
+
+```html
+<!-- index.html — placeholder divs injected at runtime -->
+<div id="navbar-placeholder"></div>
+<div id="carousel-placeholder"></div>
+<!-- ... page content ... -->
+<div id="footer-placeholder"></div>
+
+<script>
+  // Fetch a partial HTML file and inject it into a DOM element
+  function loadComponent(url, elementId) {
+    fetch(url)
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById(elementId).innerHTML = data;
+      })
+      .catch(error => console.error('Error cargando ' + url + ':', error));
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    loadComponent('navbar.html',   'navbar-placeholder');
+    loadComponent('carousel.html', 'carousel-placeholder');
+    loadComponent('footer.html',   'footer-placeholder');
+  });
+</script>
+```
+
+<Note>
+Because `loadComponent()` uses `fetch()`, the page must be served over HTTP or HTTPS. Opening `index.html` directly as a `file://` URL will cause CORS errors and the navbar, carousel, and footer will not render.
+</Note>
+
+Every page in the AETHON project follows this same pattern. The `carousel.html` partial is loaded only on the homepage (`index.html`); all other pages inject only the navbar and footer.

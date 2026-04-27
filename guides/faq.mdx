@@ -1,0 +1,166 @@
+---
+title: "AETHON FAQ: common customization and setup questions"
+description: "Answers to common questions about customizing, deploying, and extending the AETHON static bookstore — including CORS issues, pages, and data."
+---
+
+Below you will find answers to common questions about customizing, deploying, and extending AETHON. If your question is not covered here, check the other guides in this section.
+
+<AccordionGroup>
+  <Accordion title="Why don't components (navbar, footer, carousel) load when I open index.html directly?">
+    The `loadComponent()` function in each page uses the browser's `fetch()` API to load HTML partials at runtime:
+
+    ```javascript
+    function loadComponent(url, elementId) {
+        fetch(url)
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById(elementId).innerHTML = data;
+            })
+            .catch(error => console.error('Error cargando ' + url + ':', error));
+    }
+    ```
+
+    Browsers enforce CORS rules that block `fetch()` requests from `file://` origins. When you open a file directly from your filesystem, the browser treats it as a `file://` URL and refuses to fetch any other file — even from the same folder. The components silently fail to load and the page renders without a navbar, carousel, or footer.
+
+    To fix this, serve the site with any local HTTP server:
+
+    ```bash
+    npx serve .
+    ```
+
+    See the [Deployment guide](/guides/deployment) for all local server options.
+  </Accordion>
+
+  <Accordion title="How do I add a new page to the site?">
+    Follow these steps to add a new page that shares the same navbar, footer, and styling as the existing pages:
+
+    1. Create a new `.html` file in the project root (for example, `about.html`).
+    2. Copy the `<head>` block from an existing page such as `index.html`, and adjust the CSS `<link>` tags to include only the stylesheets your page needs.
+    3. Add the component placeholder `<div>` elements and the `loadComponent` script at the bottom of `<body>`:
+
+    ```html
+    <div id="navbar-placeholder"></div>
+
+    <main>
+      <!-- your page content goes here -->
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+      function loadComponent(url, elementId) {
+        fetch(url)
+          .then(response => response.text())
+          .then(data => { document.getElementById(elementId).innerHTML = data; })
+          .catch(error => console.error('Error cargando ' + url + ':', error));
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        loadComponent('navbar.html', 'navbar-placeholder');
+        loadComponent('footer.html', 'footer-placeholder');
+      });
+    </script>
+    ```
+
+    4. Add your content inside the `<main>` element.
+  </Accordion>
+
+  <Accordion title="How do I add the new page to the navbar?">
+    Open `navbar.html` and locate the `<ul class="navbar-nav">` list. Add a new `<li>` item for your page:
+
+    ```html
+    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link active" href="index.html">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link" href="ranking.html">Ranking</a></li>
+        <li class="nav-item"><a class="nav-link" href="filtros.html">Libros</a></li>
+        <!-- add your new item here -->
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+    </ul>
+    ```
+
+    Because `navbar.html` is a shared partial loaded by every page via `loadComponent()`, adding the link here makes it appear in the navbar across the entire site automatically.
+  </Accordion>
+
+  <Accordion title="How do I use a real database instead of hardcoded JS arrays?">
+    The catalog data currently lives in the `libros` array at the top of `js/filtros.js`. To replace it with a live API, remove the static array and fetch the data from your endpoint instead:
+
+    ```javascript
+    // Before: static array
+    // const libros = [ ... ];
+
+    // After: fetch from your API
+    fetch('https://your-api.example.com/books')
+        .then(response => response.json())
+        .then(data => {
+            render(data);
+            // renderRecomendados() also needs access to the data —
+            // move it inside this callback or refactor to a module pattern
+        })
+        .catch(error => console.error('Failed to load books:', error));
+    ```
+
+    Make sure your API returns an array of objects with at least the `titulo`, `autor`, `genero`, `etiqueta`, `precio`, and `img` fields that the `render()` and `filtrar()` functions expect.
+  </Accordion>
+
+  <Accordion title="Why is the login form not doing anything?">
+    The login and registration forms in `login.html` are UI-only mockups. They have no form submission handler, no HTTP request, and no session or token logic — they are purely visual prototypes.
+
+    To add real authentication, attach a `submit` event listener to the form and connect it to your authentication API:
+
+    ```javascript
+    document.querySelector('#login-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const email = e.target.email.value;
+        const password = e.target.password.value;
+
+        const response = await fetch('https://your-api.example.com/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+
+        if (response.ok) {
+            const { token } = await response.json();
+            localStorage.setItem('token', token);
+            window.location.href = 'index.html';
+        } else {
+            alert('Invalid credentials');
+        }
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Can I change the site language from Spanish to English?">
+    All user-visible text is hardcoded in the HTML files and in the JavaScript data arrays. There is no i18n system, so you need to replace the strings manually:
+
+    - **HTML files** — open each `.html` file (e.g. `index.html`, `navbar.html`, `filtros.html`, `ranking.html`) and replace Spanish labels, headings, button text, and placeholder attributes with English equivalents.
+    - **JavaScript data** — open `js/filtros.js` and update the `titulo`, `autor`, `genero`, and `etiqueta` values in the `libros` array. If `ranking.html` defines a separate `booksData` array, update those values there too.
+    - **Genre and tag filter options** — the `<select>` elements in `filtros.html` list genre and tag names in Spanish. Update those `<option>` values to match the English strings you used in the data arrays, or the filters will stop matching.
+  </Accordion>
+
+  <Accordion title="How do I update the book cover images?">
+    Cover images are referenced in two places:
+
+    **`js/filtros.js` — catalog page**
+
+    Each entry in the `libros` array has an `img` property. You can use a relative path to a local file or a full CDN URL:
+
+    ```javascript
+    { titulo: "My Book", autor: "Author", img: "img/my-cover.jpg", ... }
+    // or
+    { titulo: "My Book", autor: "Author", img: "https://cdn.example.com/my-cover.jpg", ... }
+    ```
+
+    If you use a local file, place the image in the `img/` folder in the project root.
+
+    **`ranking.html` — ranking page**
+
+    If `ranking.html` defines its own `booksData` array, update the `img` property there as well. Any image that is missing or returns a 404 will render as a broken image icon — make sure file names match exactly, including capitalisation.
+  </Accordion>
+
+  <Accordion title="Does AETHON work on mobile?">
+    Yes. The layout is responsive throughout. AETHON uses Bootstrap 5's grid system for column-based layouts, and the project's custom CSS adds media queries at the `768px` and `992px` breakpoints to adjust spacing, font sizes, and component widths for smaller screens.
+
+    The navbar uses Bootstrap's built-in collapse behaviour: on screens narrower than the `lg` breakpoint (992px), the navigation links collapse into a hamburger menu toggled by the `navbar-toggler` button defined in `navbar.html`.
+  </Accordion>
+</AccordionGroup>

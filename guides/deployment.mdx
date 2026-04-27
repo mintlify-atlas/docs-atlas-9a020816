@@ -1,0 +1,113 @@
+---
+title: "Deploy AETHON to GitHub Pages, Netlify, or any host"
+description: "AETHON is a static site with no build step. Upload the project files to any static hosting provider and your bookstore goes live instantly."
+---
+
+AETHON is a fully static site — there is no build step, no bundler, and no server-side runtime required. To deploy it, upload the project files to any static hosting service and your bookstore is immediately live. The only constraint to be aware of is that the `loadComponent()` function uses `fetch()` to inject the navbar, carousel, and footer at runtime, so the site **must be served over HTTP or HTTPS** — not opened directly from the filesystem.
+
+<Warning>
+  Opening `index.html` by double-clicking it in your file explorer (a `file://` URL) will silently fail to load the navbar, carousel, and footer. Browsers block `fetch()` requests from `file://` origins due to CORS restrictions. Always use one of the hosting options below, even for local development.
+</Warning>
+
+<Tabs>
+  <Tab title="GitHub Pages">
+    GitHub Pages serves static files directly from a repository branch at no cost.
+
+    <Steps>
+      <Step title="Push your repo to GitHub">
+        Make sure your project is committed and pushed to a GitHub repository. The repository name will appear in your site URL.
+
+        ```bash
+        git add .
+        git commit -m "initial commit"
+        git push origin main
+        ```
+      </Step>
+
+      <Step title="Open Settings > Pages">
+        In your repository on GitHub, navigate to **Settings** in the top navigation bar, then select **Pages** from the left sidebar under the "Code and automation" section.
+      </Step>
+
+      <Step title="Set the source branch and directory">
+        Under **Source**, choose your main branch (usually `main` or `master`) and set the directory to **/ (root)**. Click **Save**.
+      </Step>
+
+      <Step title="Visit your live site">
+        After a minute or two, GitHub Pages publishes your site. The URL follows the pattern:
+
+        ```
+        https://yourusername.github.io/AETHON-ecomerce/
+        ```
+
+        GitHub will show the URL at the top of the Pages settings page once deployment is complete.
+      </Step>
+    </Steps>
+
+    <Note>
+      If you rename the repository, the GitHub Pages URL changes to match the new repository name. Update any absolute links in your HTML files accordingly.
+    </Note>
+  </Tab>
+
+  <Tab title="Netlify">
+    Netlify can deploy AETHON in under a minute, either by dragging and dropping the folder or by connecting your GitHub repository for automatic deploys on every push.
+
+    **Option A — drag and drop**
+
+    <Steps>
+      <Step title="Open Netlify Drop">
+        Go to [netlify.com/drop](https://netlify.com/drop) in your browser.
+      </Step>
+
+      <Step title="Drag your project folder">
+        Drag the entire `AETHON-ecomerce` folder from your file explorer onto the drop zone. Netlify uploads all files and immediately serves them.
+      </Step>
+    </Steps>
+
+    **Option B — connect GitHub for continuous deployment**
+
+    <Steps>
+      <Step title="Create a new Netlify site from Git">
+        In the Netlify dashboard, click **Add new site** > **Import an existing project** and select your GitHub repository.
+      </Step>
+
+      <Step title="Configure build settings">
+        Set the following values — leave the build command blank, because AETHON has no build step:
+
+        | Setting | Value |
+        |---|---|
+        | Build command | *(leave empty)* |
+        | Publish directory | `.` |
+      </Step>
+
+      <Step title="Deploy">
+        Click **Deploy site**. Netlify serves the static files and assigns a `*.netlify.app` subdomain. Every future push to your main branch triggers an automatic redeploy.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Local server">
+    For local development and testing you need an HTTP server — opening the HTML files directly from the filesystem will not work. Choose any of the following options:
+
+    <CodeGroup>
+
+    ```bash npm
+    npx serve .
+    ```
+
+    ```bash python
+    python3 -m http.server 8000
+    ```
+
+    ```bash vscode
+    # Install the Live Server extension, then right-click index.html > Open with Live Server
+    ```
+
+    </CodeGroup>
+
+    After starting the server, open `http://localhost:3000` (for `npx serve`) or `http://localhost:8000` (for Python) in your browser. All `fetch()` calls for the navbar, carousel, and footer will resolve correctly.
+
+    <Tip>
+      `npx serve .` requires Node.js but needs no installation — `npx` downloads the `serve` package on first run. The Python option works on any system with Python 3 installed and requires no additional packages.
+    </Tip>
+  </Tab>
+</Tabs>

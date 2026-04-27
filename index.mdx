@@ -1,133 +1,71 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "AETHON Bookstore: dark-themed book ecommerce frontend"
+description: "AETHON is a static HTML/CSS/JS online bookstore with a catalog, rankings, book detail pages, and user auth — built on Bootstrap 5."
 ---
 
-## Setting up
+AETHON is a fully-featured bookstore frontend built with plain HTML, CSS, and Bootstrap 5. It delivers a sleek dark-themed shopping experience with a filterable book catalog, real-time rankings, detailed book pages with comments and reactions, and user login and registration flows — all without a backend dependency.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Get started" icon="rocket" href="/getting-started/setup">
+    Clone the repo and open the site in your browser in under two minutes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Project structure" icon="folder-open" href="/getting-started/project-structure">
+    Understand how pages, components, CSS, and JS are organized.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Book catalog" icon="books" href="/pages/catalog">
+    Explore the filterable catalog with genre, label, price, and author filters.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="UI components" icon="puzzle-piece" href="/components/navbar">
+    Reusable navbar, carousel, footer, and book card components.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What's inside
 
-Everything you need to create world-class documentation.
+<CardGroup cols={3}>
+  <Card title="Homepage" icon="house" href="/pages/home">
+    Hero carousel and featured book sections.
+  </Card>
+  <Card title="Book detail" icon="book-open" href="/pages/book-detail">
+    Synopsis, tags, reactions, comments, and recommendations.
+  </Card>
+  <Card title="Rankings" icon="trophy" href="/pages/ranking">
+    Most visited, most sold, and highest-rated books.
+  </Card>
+  <Card title="Theming" icon="palette" href="/guides/theming">
+    Customize colors, fonts, and dark-mode styles.
+  </Card>
+  <Card title="Adding books" icon="plus" href="/guides/adding-books">
+    Add new titles to the catalog and rankings.
+  </Card>
+  <Card title="Deployment" icon="cloud-arrow-up" href="/guides/deployment">
+    Publish to GitHub Pages, Netlify, or any static host.
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Quick start
 
-## Make your content agent ready
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/SuarezCaceres/AETHON-ecomerce.git
+    cd AETHON-ecomerce
+    ```
+  </Step>
+  <Step title="Open the site">
+    Open `index.html` in your browser directly, or serve it with any static file server:
+    ```bash
+    npx serve .
+    ```
+  </Step>
+  <Step title="Explore the pages">
+    Navigate through the homepage, catalog (`filtros.html`), rankings (`ranking.html`), and a book detail (`book.html`) to see the full experience.
+  </Step>
+  <Step title="Customize">
+    Edit `css/styles.css` to adjust colors and layout, then update `js/filtros.js` to add your own book data.
+  </Step>
+</Steps>
 
-Make your docs work for humans and AI agents alike.
-
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
-  </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
-  </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
-  </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Note>
+  AETHON is a static frontend — no server or database is required. All data is defined directly in JavaScript files.
+</Note>

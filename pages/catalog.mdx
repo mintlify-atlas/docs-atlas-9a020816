@@ -1,0 +1,182 @@
+---
+title: 'Book catalog: filtering, searching, and sorting books'
+description: 'Explore how the AETHON catalog page lets you filter books by genre, tag, price range, and author, then sort or search the results in real time.'
+---
+
+The AETHON catalog page (`filtros.html`) gives you a filterable, searchable view of the entire book inventory. All filtering and rendering happens client-side in `js/filtros.js` — no server requests are made after the initial page load.
+
+## Page layout
+
+The catalog is divided into two columns:
+
+- **Filters sidebar** (left) — dropdowns for genre, tag, price, and author, plus a "Limpiar filtros" button
+- **Catalog area** (right) — a search bar, sort dropdown, result counter, book grid, and a "Libros que te pueden gustar" recommendations strip
+
+## Filter options
+
+### Genre (`#genero`)
+
+Filters books by their `genero` field. Available options:
+
+- Universitarios
+- Escolares
+- Arquitectura y Diseño
+- Literatura
+- Infantil
+- Idiomas
+- Tecnología
+- Ciencias
+- Arte
+- Material educativo
+
+### Tag (`#etiqueta`)
+
+Filters books by their `etiqueta` field. Available options:
+
+- cálculo
+- maquetas
+- rápido
+- económico
+- plan lector
+- universitario
+- ingeniería
+
+### Price (`#precio`)
+
+Filters books by price bracket. Available ranges:
+
+| Option | Min | Max |
+|--------|-----|-----|
+| 0 - 50 | 0 | 50 |
+| 50 - 100 | 50 | 100 |
+| 100 - 200 | 100 | 200 |
+| 200+ | 200 | — |
+
+<Note>
+Price filtering is defined in the HTML dropdown but the current `filtrar()` implementation in `filtros.js` reads only the `precio` field value without range-matching logic. To enable price filtering, add a range check inside `filtrar()`.
+</Note>
+
+### Author (`#autor`)
+
+Filters books by their `autor` field. Available options: Lovecraft, Cuttlefish, Autor 1, Autor 2.
+
+## Search bar and sort options
+
+The top bar inside the catalog area contains two controls that update the view on every keystroke or change event:
+
+- **Search input (`#search`)** — filters by title substring (case-insensitive)
+- **Sort dropdown (`#orden`)** — three options:
+  - `precio-asc` — price, lowest to highest
+  - `precio-desc` — price, highest to lowest
+  - `az` — title, A to Z
+
+All four filter dropdowns, the search input, and the sort dropdown are wired to `filtrar()` via `change` and `keyup` event listeners:
+
+```javascript
+document.querySelectorAll("select, input").forEach(el => {
+    el.addEventListener("change", filtrar);
+    el.addEventListener("keyup",  filtrar);
+});
+```
+
+## Book data array
+
+All books are stored in the `libros` array in `filtros.js`. Each object has six fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `titulo` | string | Book title |
+| `autor` | string | Author name |
+| `genero` | string | Genre category |
+| `etiqueta` | string | Content tag |
+| `precio` | number | Price (numeric) |
+| `img` | string | Cover image URL |
+
+Here is a representative subset of the array:
+
+```javascript
+const libros = [
+    { titulo: "Cthulhu Mythos",        autor: "Lovecraft",  genero: "Ciencias",             etiqueta: "cálculo",      precio: 120, img: "img/libro1.jpg" },
+    { titulo: "Lord of Mysteries",     autor: "Cuttlefish", genero: "Literatura",            etiqueta: "universitario", precio: 80,  img: "https://..." },
+    { titulo: "Deep Sea",              autor: "Autor 1",    genero: "Tecnología",            etiqueta: "ingeniería",   precio: 200, img: "https://..." },
+    { titulo: "1888",                  autor: "Autor 2",    genero: "Literatura",            etiqueta: "rápido",       precio: 60,  img: "https://..." },
+    { titulo: "Álgebra Básica",        autor: "Autor 1",    genero: "Universitarios",        etiqueta: "cálculo",      precio: 45,  img: "https://..." },
+    { titulo: "Geometría Escolar",     autor: "Autor 2",    genero: "Escolares",             etiqueta: "económico",    precio: 30,  img: "https://..." },
+    { titulo: "Diseño Arquitectónico", autor: "Autor 1",    genero: "Arquitectura y Diseño", etiqueta: "maquetas",     precio: 150, img: "https://..." },
+    { titulo: "Programación Java",     autor: "Autor 2",    genero: "Tecnología",            etiqueta: "ingeniería",   precio: 180, img: "https://..." },
+    { titulo: "Física General",        autor: "Autor 1",    genero: "Ciencias",              etiqueta: "universitario", precio: 95,  img: "https://..." },
+    { titulo: "Cálculo Avanzado",      autor: "Lovecraft",  genero: "Universitarios",        etiqueta: "cálculo",      precio: 210, img: "https://..." },
+    { titulo: "Diseño UX/UI",          autor: "Cuttlefish", genero: "Tecnología",            etiqueta: "rápido",       precio: 130, img: "https://..." },
+    // ... 4 more entries
+];
+```
+
+## JavaScript functions
+
+### `render(data)`
+
+Clears the `#grid` element and re-renders it from the supplied array. It also updates the `#contador` element with a count of results.
+
+```javascript
+function render(data) {
+    grid.innerHTML = "";
+    contador.textContent = data.length + " libros encontrados";
+
+    data.forEach(libro => {
+        grid.innerHTML += `
+<div class="card">
+    <img src="${libro.img}">
+    <div class="card-body">
+        <h4>${libro.titulo}</h4>
+        <p>${libro.autor}</p>
+    </div>
+</div>`;
+    });
+}
+```
+
+### `filtrar()`
+
+Reads the current values of all filter controls, applies them to the `libros` array with `Array.filter()`, sorts the result, then calls `render()`.
+
+```javascript
+function filtrar() {
+    const genero   = document.getElementById("genero").value;
+    const etiqueta = document.getElementById("etiqueta").value;
+    const precio   = document.getElementById("precio").value;
+    const autor    = document.getElementById("autor").value;
+    const search   = document.getElementById("search").value.toLowerCase();
+
+    let resultado = libros.filter(l =>
+        (genero   === "Seleccione género"   || l.genero   === genero)   &&
+        (etiqueta === "Seleccione etiqueta" || l.etiqueta === etiqueta) &&
+        (autor    === "Seleccione autor"    || l.autor    === autor)    &&
+        (l.titulo.toLowerCase().includes(search))
+    );
+
+    const orden = document.getElementById("orden").value;
+
+    if      (orden === "precio-asc")  resultado.sort((a, b) => a.precio - b.precio);
+    else if (orden === "precio-desc") resultado.sort((a, b) => b.precio - a.precio);
+    else if (orden === "az")          resultado.sort((a, b) => a.titulo.localeCompare(b.titulo));
+
+    render(resultado);
+}
+```
+
+## Adding a new book
+
+To add a book to the catalog, append a new object to the `libros` array in `js/filtros.js`. Make sure its `genero`, `etiqueta`, and `autor` values match one of the existing dropdown options, otherwise it will only appear when no filter is active.
+
+```javascript
+// js/filtros.js — add a new entry at the end of the libros array
+{ titulo: "Mi Nuevo Libro", autor: "Lovecraft", genero: "Literatura", etiqueta: "rápido", precio: 75, img: "img/mi-libro.jpg" },
+```
+
+<Tip>
+To expose a new author as a filter option, also add an `<option>` element to the `#autor` select in `filtros.html`. The same applies to new genres and tags.
+</Tip>
+
+## Recommendations strip
+
+Below the main grid, `renderRecomendados()` picks five books at random from the full `libros` array and displays them in a horizontally scrollable `.recomendados` container. The selection is re-randomized on every full page load or filter reset.

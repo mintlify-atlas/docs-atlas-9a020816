@@ -1,0 +1,144 @@
+---
+title: 'Book detail page: synopsis, reactions, and comments'
+description: 'Understand every section of the AETHON book detail page, including the hero, synopsis, similar books, emoji reactions, and the rich-text comment editor.'
+---
+
+The AETHON book detail page (`book.html`) gives readers a complete view of a single title. It combines editorial content — cover, synopsis, tags — with social features such as emoji reactions and a rich-text comment section.
+
+## Hero section
+
+The top of the page is a full-bleed hero that displays the book's key metadata alongside its cover image.
+
+The hero contains the following elements:
+
+- **Cover image** — the book's front cover, displayed in a `.hero-cover` frame
+- **Title** — rendered as an `<h1>` (currently "Lord of the Mysteries")
+- **Author** — shown below the title ("Por Cuttlefish That Loves Diving")
+- **Buy button** — a `.btn-comprar` anchor with a shopping-cart icon
+- **Tags** — a row of genre/mood chips (Acción, Aventura, Drama, Fantasy, Misterio, Más…)
+- **Action buttons** — three secondary buttons: "Guardar" (save to wishlist), "Lista de lectura" (reading list), and "Compartir" (share)
+- **Stats bar** — three metrics displayed inline:
+
+| Stat | Value |
+|------|-------|
+| Views | 1.2 M vistas |
+| Rating | 4.9 / 5.0 |
+| Reviews | 38.4 k reseñas |
+
+The hero background (`hero-bg`) and overlay (`hero-overlay`) create a blurred, darkened backdrop behind the content area.
+
+## Synopsis section
+
+Below the hero, a `.sinopsis-section` presents four paragraphs of narrative description. For "Lord of the Mysteries" this covers the world-building premise, the Beyonder power system, and a closing thematic note.
+
+## "Recomendaciones para ti" scroll
+
+A horizontally scrollable strip shows six related books with navigation arrows (`#alsoPrev` / `#alsoNext`). The strip is driven by the `#alsoTrack` element and currently lists:
+
+- El Señor de los Anillos
+- Breve Historia del Tiempo
+- 1984
+- Cien Años de Soledad
+- El Principito
+- Harry Potter
+
+## Similar books grid
+
+A `.lp-grid` below the scroll strip renders five "Libros parecidos" cards. Each card includes a cover image, title, author, and a publication-age note (e.g., "Publicación: 2 años").
+
+## Reaction system
+
+The `.reactions-section` invites readers to express how a book made them feel. Six emoji reaction buttons are displayed in a row, each with a live count and a text label.
+
+| Key | Emoji | Label |
+|-----|-------|-------|
+| `upvote` | 👍 | Upvote |
+| `funny` | 😂 | Funny |
+| `love` | ❤️ | Love |
+| `surprised` | 😮 | Surprised |
+| `angry` | 😠 | Angry |
+| `sad` | 😢 | Sad |
+
+Each reaction button carries a `data-key` attribute that identifies the reaction type. The count is stored in a `<span>` with the ID `count-{key}` (e.g., `count-upvote`). The total reaction count is displayed in `#reactionCount`.
+
+```html
+<!-- One reaction item — the other five follow the same pattern -->
+<div class="emoji-item" data-key="upvote">
+    <button class="emoji-btn" title="Upvote">👍</button>
+    <span class="emoji-count" id="count-upvote">2</span>
+    <span class="emoji-label">Upvote</span>
+</div>
+```
+
+## Comments section
+
+The `.comments-section` is a complete discussion area with a rich-text editor and a threaded comment list.
+
+### Editor toolbar
+
+The editor uses a `contenteditable` `<div>` (`#commentEditor`) as its input surface. A toolbar row sits below it with formatting commands on the left and submission controls on the right.
+
+**Left toolbar — formatting commands:**
+
+| Button | Command | Effect |
+|--------|---------|--------|
+| **B** | `bold` | Bold text |
+| *I* | `italic` | Italic text |
+| ~~S~~ | `strikeThrough` | Strikethrough text |
+| `</>` | `insertCode` | Inline code |
+| ✕ | `removeFormat` | Clear all formatting |
+| ↩ | `undo` | Undo last action |
+| Ordered list | `insertOrderedList` | Numbered list |
+| Bullet list | `insertUnorderedList` | Bulleted list |
+| Link | `createLink` | Insert hyperlink |
+
+**Right toolbar — submission controls:**
+
+- **Word counter** — live word count displayed as "`n` Words" (updates via `#wordCount`)
+- **Submit button** (`#submitComment`) — posts the comment to `#commentList`
+
+### Comment list
+
+Existing comments appear below the editor in `.comment-item` elements. Each item shows a single-letter avatar, the author's name, a relative timestamp, the comment body, and "Like" and "Reply" action buttons. Comments can be sorted using three tabs: **Latest**, **Oldest**, and **Best**.
+
+<Tip>
+The editor commands are executed with `document.execCommand()`. All toolbar buttons use a `data-cmd` attribute that maps directly to the `execCommand` command string, making it straightforward to add new formatting options.
+</Tip>
+
+## Comment submission
+
+Clicking the `#submitComment` button reads the editor's `innerHTML`, creates a new `.comment-item` element, and prepends it to `#commentList` (or appends it if the **Oldest** tab is active). It then clears the editor and updates the `#commentBadge` count. New comments appear with a brief fade-in and upward-slide animation via inline style transitions.
+
+The reactions, comment editor, and tab logic all live in `js/seccion-extra.js`, which also manages the `reactions` object that tracks counts and toggle state per emoji key.
+
+## JavaScript behavior (book.js)
+
+All interactive behavior on the book detail page is managed by `js/book.js`. It runs on `DOMContentLoaded` and handles three concerns:
+
+**Component loading** — loads the navbar and footer partials:
+
+```javascript js/book.js
+loadComponent('navbar.html', 'navbar-placeholder');
+loadComponent('footer.html', 'footer-placeholder');
+```
+
+**Genre tag pill toggle** — clicking any `.htag` pill removes `active` from all pills and adds it to the clicked one:
+
+```javascript js/book.js
+document.querySelectorAll('.htag').forEach(tag => {
+    tag.addEventListener('click', function () {
+        document.querySelectorAll('.htag').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+```
+
+**"Recomendaciones para ti" carousel** — the `#alsoPrev` and `#alsoNext` buttons scroll the `#alsoTrack` strip by one item. The number of visible items adjusts responsively: 2 on screens narrower than 576 px, 3 below 992 px, and 5 on larger screens. A `resize` listener recalculates the visible count and clamps the scroll offset whenever the window is resized.
+
+```javascript js/book.js
+function getVisible() {
+    if (window.innerWidth < 576) return 2;
+    if (window.innerWidth < 992) return 3;
+    return 5;
+}
+```

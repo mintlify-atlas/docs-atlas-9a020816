@@ -1,0 +1,287 @@
+---
+title: 'Footer: reusable three-column site footer component'
+description: 'The AETHON footer is a shared HTML partial with brand info, book category links, and contact details, fetched at runtime and injected into every page.'
+---
+
+The footer appears at the bottom of every page in AETHON and provides brand information, quick links to book categories, and contact details. Like the navbar, the markup lives in `footer.html` and is injected at runtime using `fetch`, so a single edit propagates to all pages instantly.
+
+## HTML structure
+
+The full source of `footer.html` is shown below. It is divided into a three-column body, a horizontal divider, and a bottom bar with copyright and legal links.
+
+```html footer.html
+<footer class="main-footer">
+
+    <!-- Cuerpo: 3 columnas -->
+    <div class="footer-body">
+        <div class="footer-grid">
+
+            <!-- Columna 1: Marca -->
+            <div class="footer-brand">
+                <h3 class="footer-brand-title">El Amazonas</h3>
+                <p class="footer-brand-desc">
+                    Descubre, compara y conecta con tiendas del Amazonas.
+                    Todo para tus estudios, más fácil y organizado.
+                </p>
+                <div class="footer-social">
+                    <a href="#" class="footer-social-btn" aria-label="Facebook">f</a>
+                    <a href="#" class="footer-social-btn footer-social-x" aria-label="Twitter / X">𝕏</a>
+                    <a href="#" class="footer-social-btn" aria-label="Instagram">in</a>
+                </div>
+            </div>
+
+            <!-- Columna 2: Tipos de Libros -->
+            <div class="footer-col">
+                <h6 class="footer-col-title">Tipos de Libros</h6>
+                <ul class="footer-links">
+                    <li><a href="#">Libros universitarios</a></li>
+                    <li><a href="#">Libros escolares</a></li>
+                    <li><a href="#">Libros infantiles</a></li>
+                    <li><a href="#">Arquitectura y diseño</a></li>
+                    <li><a href="#">Literatura e Idioma</a></li>
+                    <li><a href="#">Tecnología y Ciencia</a></li>
+                </ul>
+            </div>
+
+            <!-- Columna 3: Contacto -->
+            <div class="footer-col">
+                <h6 class="footer-col-title">Contacto</h6>
+                <ul class="footer-contact-list">
+                    <li>
+                        <span class="footer-contact-icon"><!-- location SVG --></span>
+                        <span>Av. Amazonas 1234, Lima, Perú</span>
+                    </li>
+                    <li>
+                        <span class="footer-contact-icon"><!-- clock SVG --></span>
+                        <span>Lun–Vie: 9am – 6pm</span>
+                    </li>
+                    <li>
+                        <span class="footer-contact-icon"><!-- lock SVG --></span>
+                        <span>Pago 100% seguro</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Separador -->
+    <hr class="footer-divider">
+
+    <!-- Pie inferior -->
+    <div class="footer-bottom">
+        <div class="footer-copyright">
+            &copy; 2025 El Amazonas. Todos los derechos reservados.
+        </div>
+        <nav class="footer-legal">
+            <a href="#">Política de Privacidad</a>
+            <span class="separator">•</span>
+            <a href="#">Términos de Servicio</a>
+            <span class="separator">•</span>
+            <a href="#">Términos de Uso</a>
+            <span class="separator">•</span>
+            <a href="#">DMCA</a>
+        </nav>
+    </div>
+
+</footer>
+```
+
+## Column breakdown
+
+The footer body uses a CSS grid (`grid-template-columns: 1.5fr 1fr 1fr`) to lay out three columns side by side on desktop. On screens narrower than 900 px the brand column spans the full width, and below 576 px all three columns stack vertically.
+
+### Brand column
+
+The first column carries the **El Amazonas** brand name, a short description, and three circular social-link buttons (Facebook, Twitter/X, Instagram). The buttons are placeholder `#` hrefs — replace them with real profile URLs when the accounts are live.
+
+### Book categories column
+
+The second column lists six book categories as links under the heading **Tipos de Libros**:
+
+- Libros universitarios
+- Libros escolares
+- Libros infantiles
+- Arquitectura y diseño
+- Literatura e Idioma
+- Tecnología y Ciencia
+
+Each `<a href="#">` is a placeholder. Wire these to filtered catalog pages once the category routes exist.
+
+### Contact column
+
+The third column shows three items, each with a red SVG icon and a text label:
+
+| Icon | Detail |
+|---|---|
+| Location pin | Av. Amazonas 1234, Lima, Perú |
+| Clock | Lun–Vie: 9am – 6pm |
+| Lock | Pago 100% seguro |
+
+## Loading the footer dynamically
+
+Add the placeholder `<div>` near the end of your page's `<body>`, after the main content:
+
+```html
+<div id="footer-placeholder"></div>
+```
+
+Then call `loadComponent` inside the `DOMContentLoaded` listener:
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    loadComponent('footer.html', 'footer-placeholder');
+});
+```
+
+Link the footer stylesheet in the `<head>`:
+
+```html
+<link href="css/footer.css" rel="stylesheet">
+```
+
+## Updating footer content
+
+<Steps>
+  <Step title="Update the brand name">
+    Open `footer.html` and change the text inside `<h3 class="footer-brand-title">`. The current value is `El Amazonas`.
+
+    ```html
+    <h3 class="footer-brand-title">Your Brand Name</h3>
+    ```
+  </Step>
+  <Step title="Update social links">
+    Replace the `href="#"` on each `.footer-social-btn` anchor with the real URL for each platform:
+
+    ```html
+    <a href="https://facebook.com/yourpage" class="footer-social-btn" aria-label="Facebook">f</a>
+    <a href="https://x.com/yourhandle" class="footer-social-btn footer-social-x" aria-label="Twitter / X">𝕏</a>
+    <a href="https://instagram.com/yourprofile" class="footer-social-btn" aria-label="Instagram">in</a>
+    ```
+  </Step>
+  <Step title="Update contact info">
+    Edit the three `<span>` text nodes in the `.footer-contact-list` to reflect your actual address, hours, and payment messaging:
+
+    ```html
+    <span>Your Street Address, City, Country</span>
+    <span>Mon–Fri: 10am – 7pm</span>
+    <span>Secure checkout guaranteed</span>
+    ```
+  </Step>
+</Steps>
+
+<AccordionGroup>
+  <Accordion title="Footer CSS reference">
+
+```css css/footer.css
+.main-footer {
+    background-color: #0a0a0a;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    border-top: 1px solid #1e1e1e;
+    width: 100%;
+}
+
+.footer-body {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 50px 20px 42px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 48px;
+}
+
+.footer-brand-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+}
+
+.footer-col-title {
+    color: #dc3545;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 20px;
+}
+
+.footer-social-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.footer-social-btn:hover {
+    background: #dc3545;
+    transform: translateY(-2px);
+}
+
+.footer-links a {
+    color: #909090;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+}
+
+.footer-contact-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #909090;
+    font-size: 0.875rem;
+    margin-bottom: 13px;
+}
+
+.footer-contact-icon {
+    color: #dc3545;
+    flex-shrink: 0;
+}
+
+.footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer-copyright {
+    color: #606060;
+    font-size: 0.82rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+    }
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+}
+```
+
+  </Accordion>
+</AccordionGroup>
